@@ -1,0 +1,17 @@
+databaseChangeLog:
+  - changeSet:
+      id: 001-schema
+      author: codex
+      changes:
+        - sqlFile:
+            path: db/migration/001-schema.sql
+            splitStatements: true
+            stripComments: true
+  - changeSet:
+      id: 002-demo-data
+      author: codex
+      changes:
+        - sqlFile:
+            path: db/migration/002-demo-data.sql
+            splitStatements: true
+            stripComments: true

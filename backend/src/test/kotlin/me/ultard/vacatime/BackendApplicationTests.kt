@@ -1,13 +1,9 @@
 package me.ultard.vacatime
 
+import me.ultard.vacatime.support.ApiIntegrationTest
 import org.junit.jupiter.api.Test
-import org.springframework.boot.test.context.SpringBootTest
 
-@SpringBootTest
-class BackendApplicationTests {
-
+class BackendApplicationTests : ApiIntegrationTest() {
     @Test
-    fun contextLoads() {
-    }
-
+    fun contextLoads() {}
 }

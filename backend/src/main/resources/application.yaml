@@ -19,7 +19,7 @@ spring:
       include-message: never
 app:
   jwt:
-    secret: ${JWT_SECRET:change-me-change-me-change-me-change-me-change-me-123456}
+    secret: ${JWT_SECRET}
     access-minutes: 15
     refresh-days: 14
   security:

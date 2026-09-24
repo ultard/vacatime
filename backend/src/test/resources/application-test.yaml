@@ -9,3 +9,6 @@ spring:
   docker:
     compose:
       enabled: false
+app:
+  jwt:
+    secret: test-only-secret-change-before-deployment-123456

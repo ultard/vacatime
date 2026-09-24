@@ -4,14 +4,17 @@ Spring Boot/Kotlin API for managing employee vacations.
 
 ## Запуск
 
-Требуются JDK 25 и Docker.
+Требуются JDK 25 и Docker. Для запуска задайте случайный `JWT_SECRET` длиной
+не менее 32 байт; секрет по умолчанию не используется.
 
 ```powershell
-docker compose up -d
+$env:JWT_SECRET = '<случайная строка не короче 32 байт>'
+docker compose up -d postgres
 .\gradlew.bat bootRun
 ```
 
-Чтобы запустить backend и PostgreSQL в контейнерах:
+Для Compose скопируйте `.env.example` в `.env` и замените `JWT_SECRET` случайным
+секретом. Файл `.env` не попадает в Git.
 
 ```powershell
 docker compose up --build -d
@@ -21,6 +24,10 @@ docker compose ps
 После запуска API доступен на `http://localhost:8080`; остановить контейнеры
 можно командой `docker compose down`. Данные PostgreSQL сохраняются в volume
 `postgres-data`.
+
+Значения PostgreSQL по умолчанию и `.env.example` предназначены только для
+локальной разработки. Для развёртывания задайте собственные `DB_USER`,
+`DB_PASSWORD` и `JWT_SECRET` вне репозитория.
 
 Swagger: http://localhost:8080/swagger-ui/index.html. Получите access token через
 `POST /api/auth/login` и вставьте его в Swagger Authorize.

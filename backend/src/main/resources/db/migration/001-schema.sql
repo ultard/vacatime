@@ -92,6 +92,48 @@ CREATE TABLE audit_log
 CREATE INDEX ix_vacations_employee_dates ON vacations (employee_id, start_date, end_date);
 CREATE INDEX ix_vacations_filters ON vacations (status, archived, start_date);
 CREATE INDEX ix_audit_created ON audit_log (created_at);
+
+CREATE TABLE departments
+(
+    id         UUID PRIMARY KEY,
+    name       VARCHAR(100) NOT NULL UNIQUE,
+    active     BOOLEAN      NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL
+);
+
+CREATE TABLE shifts
+(
+    id            UUID PRIMARY KEY,
+    department_id UUID         NOT NULL REFERENCES departments (id),
+    name          VARCHAR(100) NOT NULL,
+    active        BOOLEAN      NOT NULL DEFAULT TRUE,
+    created_at    TIMESTAMP WITH TIME ZONE NOT NULL,
+    updated_at    TIMESTAMP WITH TIME ZONE NOT NULL,
+    UNIQUE (department_id, name)
+);
+
+CREATE TABLE shift_plans
+(
+    id             UUID PRIMARY KEY,
+    shift_id       UUID NOT NULL REFERENCES shifts (id),
+    work_date      DATE NOT NULL,
+    minimum_staff  INT  NOT NULL CHECK (minimum_staff >= 0),
+    UNIQUE (shift_id, work_date)
+);
+
+CREATE TABLE shift_plan_assignments
+(
+    id          UUID PRIMARY KEY,
+    plan_id     UUID NOT NULL REFERENCES shift_plans (id) ON DELETE CASCADE,
+    employee_id UUID NOT NULL REFERENCES users (id),
+    work_date   DATE NOT NULL,
+    UNIQUE (plan_id, employee_id),
+    UNIQUE (work_date, employee_id)
+);
+
+CREATE INDEX ix_shift_plans_date ON shift_plans (work_date);
+CREATE INDEX ix_shift_assignments_date_employee ON shift_plan_assignments (work_date, employee_id);
 INSERT INTO vacation_types(id, code, name, description, active)
 
 VALUES ('00000000-0000-0000-0000-000000000001', 'ANNUAL', 'Annual leave', 'Paid annual leave', true),

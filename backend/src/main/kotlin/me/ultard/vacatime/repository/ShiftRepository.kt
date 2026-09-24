@@ -7,5 +7,9 @@ import java.util.UUID
 interface ShiftRepository : JpaRepository<Shift, UUID> {
     fun findAllByActiveTrueAndDepartmentActiveTrueOrderByDepartmentNameAscNameAsc(): List<Shift>
 
+    fun findAllByOrderByDepartmentNameAscNameAsc(): List<Shift>
+
+    fun findAllByDepartmentIdOrderByName(departmentId: UUID): List<Shift>
+
     fun findByIdAndDepartmentId(id: UUID, departmentId: UUID): Shift?
 }

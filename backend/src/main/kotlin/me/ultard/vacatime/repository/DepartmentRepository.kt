@@ -7,5 +7,7 @@ import java.util.UUID
 interface DepartmentRepository : JpaRepository<Department, UUID> {
     fun findAllByActiveTrueOrderByName(): List<Department>
 
+    fun findAllByOrderByName(): List<Department>
+
     fun findByIdAndActiveTrue(id: UUID): Department?
 }

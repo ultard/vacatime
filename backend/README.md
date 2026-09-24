@@ -11,6 +11,17 @@ docker compose up -d
 .\gradlew.bat bootRun
 ```
 
+Чтобы запустить backend и PostgreSQL в контейнерах:
+
+```powershell
+docker compose up --build -d
+docker compose ps
+```
+
+После запуска API доступен на `http://localhost:8080`; остановить контейнеры
+можно командой `docker compose down`. Данные PostgreSQL сохраняются в volume
+`postgres-data`.
+
 Swagger: http://localhost:8080/swagger-ui/index.html. Получите access token через
 `POST /api/auth/login` и вставьте его в Swagger Authorize.
 

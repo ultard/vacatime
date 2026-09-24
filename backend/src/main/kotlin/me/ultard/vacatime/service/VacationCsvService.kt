@@ -114,10 +114,10 @@ class VacationCsvService(
                         }
                         vacationService.validateImport(request, existing?.id)
                         if (
-                            request.status in ACTIVE_STATUSES &&
+                            request.status in VacationStatus.ACTIVE_STATUSES &&
                             validRows.any { previous ->
                                 val planned = requireNotNull(previous.request)
-                                planned.status in ACTIVE_STATUSES &&
+                                planned.status in VacationStatus.ACTIVE_STATUSES &&
                                     planned.employeeId == request.employeeId &&
                                     planned.startDate <= request.endDate &&
                                     planned.endDate >= request.startDate
@@ -213,7 +213,5 @@ class VacationCsvService(
                 "status",
                 "version",
             )
-        private val ACTIVE_STATUSES =
-            setOf(VacationStatus.DRAFT, VacationStatus.PENDING, VacationStatus.APPROVED)
     }
 }

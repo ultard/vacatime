@@ -217,11 +217,11 @@ class VacationService(
             checkStatusTransition(findVacation(existingId), request.status)
         }
         if (
-            request.status in ACTIVE_STATUSES &&
+            request.status in VacationStatus.ACTIVE_STATUSES &&
             vacationRepository.hasOverlappingVacation(
                 request.employeeId,
                 existingId ?: UUID(0, 0),
-                ACTIVE_STATUSES,
+                VacationStatus.ACTIVE_STATUSES,
                 request.startDate,
                 request.endDate,
             )
@@ -249,11 +249,11 @@ class VacationService(
         }
         if (
             !vacation.archived &&
-            vacation.status in ACTIVE_STATUSES &&
+            vacation.status in VacationStatus.ACTIVE_STATUSES &&
             vacationRepository.hasOverlappingVacation(
                 requireNotNull(vacation.employee).id,
                 vacation.id,
-                ACTIVE_STATUSES,
+                VacationStatus.ACTIVE_STATUSES,
                 vacation.startDate,
                 vacation.endDate,
             )
@@ -286,9 +286,4 @@ class VacationService(
     private fun requireTag(tag: String?): String =
         tag?.takeIf { it.isNotBlank() && it.length <= 100 }
             ?: throw ValidationException("A nonblank tag of at most 100 characters is required")
-
-    companion object {
-        private val ACTIVE_STATUSES =
-            setOf(VacationStatus.DRAFT, VacationStatus.PENDING, VacationStatus.APPROVED)
-    }
 }

@@ -6,4 +6,9 @@ enum class VacationStatus {
     APPROVED,
     REJECTED,
     CANCELLED,
+    ;
+
+    companion object {
+        val ACTIVE_STATUSES = setOf(DRAFT, PENDING, APPROVED)
+    }
 }

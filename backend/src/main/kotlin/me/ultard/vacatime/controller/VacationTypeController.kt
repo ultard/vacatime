@@ -1,5 +1,6 @@
 package me.ultard.vacatime.controller
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import jakarta.validation.Valid
 import me.ultard.vacatime.dto.VacationTypeDto
 import me.ultard.vacatime.dto.VacationTypeRequest
@@ -16,6 +17,7 @@ import java.util.UUID
 
 @RestController
 @RequestMapping("/api/vacation-types")
+@SecurityRequirement(name = "bearerAuth")
 class VacationTypeController(
     private val vacationTypeService: VacationTypeService,
 ) {

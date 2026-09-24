@@ -1,5 +1,6 @@
 package me.ultard.vacatime.controller
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import jakarta.validation.Valid
 import me.ultard.vacatime.dto.BulkRequest
 import me.ultard.vacatime.dto.BulkResult
@@ -25,6 +26,7 @@ import java.util.UUID
 
 @RestController
 @RequestMapping("/api/vacations")
+@SecurityRequirement(name = "bearerAuth")
 class VacationController(
     private val vacationService: VacationService,
     private val vacationBulkService: VacationBulkService,

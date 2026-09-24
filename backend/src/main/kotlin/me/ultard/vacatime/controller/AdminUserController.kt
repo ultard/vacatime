@@ -1,5 +1,6 @@
 package me.ultard.vacatime.controller
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import jakarta.validation.Valid
 import me.ultard.vacatime.dto.PageResponse
 import me.ultard.vacatime.dto.ResetPasswordRequest
@@ -20,6 +21,7 @@ import java.util.UUID
 @RestController
 @RequestMapping("/api/admin/users")
 @PreAuthorize("hasRole('ADMIN')")
+@SecurityRequirement(name = "bearerAuth")
 class AdminUserController(
     private val userService: UserService,
 ) {

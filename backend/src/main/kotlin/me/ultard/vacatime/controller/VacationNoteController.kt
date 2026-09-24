@@ -1,5 +1,6 @@
 package me.ultard.vacatime.controller
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import jakarta.validation.Valid
 import me.ultard.vacatime.domain.User
 import me.ultard.vacatime.dto.NoteDto
@@ -19,6 +20,7 @@ import java.util.UUID
 
 @RestController
 @RequestMapping("/api/vacations/{id}/notes")
+@SecurityRequirement(name = "bearerAuth")
 class VacationNoteController(
     private val vacationNoteService: VacationNoteService,
 ) {

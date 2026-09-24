@@ -1,5 +1,6 @@
 package me.ultard.vacatime.controller
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import jakarta.validation.Valid
 import me.ultard.vacatime.dto.ImportApplyResult
 import me.ultard.vacatime.dto.ImportPreviewResult
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/api/vacations")
+@SecurityRequirement(name = "bearerAuth")
 class VacationCsvController(
     private val vacationCsvService: VacationCsvService,
 ) {

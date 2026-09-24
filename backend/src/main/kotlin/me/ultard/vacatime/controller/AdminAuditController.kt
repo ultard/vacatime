@@ -1,5 +1,6 @@
 package me.ultard.vacatime.controller
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import me.ultard.vacatime.dto.AuditLogDto
 import me.ultard.vacatime.dto.PageResponse
 import me.ultard.vacatime.service.AuditService
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/api/admin/audit")
 @PreAuthorize("hasRole('ADMIN')")
+@SecurityRequirement(name = "bearerAuth")
 class AdminAuditController(
     private val auditService: AuditService,
 ) {

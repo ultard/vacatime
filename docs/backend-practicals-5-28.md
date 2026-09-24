@@ -20,7 +20,7 @@ $env:VACATIME_ACCESS_TOKEN = '<access token>'
 
 ### Состояние backend
 
-Сборка backend, Liquibase-подключение к БД, CRUD/API-обработчики, обработка ошибок и OpenAPI/Swagger уже реализованы. Локальный автоматический прогон выполнен командой `.\gradlew.bat '-Pkotlin.compiler.execution.strategy=in-process' check bootJar`: **BUILD SUCCESSFUL**, 26 тестов, 0 ошибок и 0 пропусков; также прошли форматирование Kotlin и сборка JAR.
+Сборка backend, Liquibase-подключение к БД, CRUD/API-обработчики, обработка ошибок и OpenAPI/Swagger уже реализованы. Локальный автоматический прогон выполнен командой `.\gradlew.bat '-Pkotlin.compiler.execution.strategy=in-process' check bootJar`: **BUILD SUCCESSFUL**, 27 тестов, 0 ошибок и 0 пропусков; также прошли форматирование Kotlin и сборка JAR.
 
 Контейнерный smoke-тест, проверка сохранения данных после перезапуска PostgreSQL и PostgreSQL-специфичный `postgresTest` здесь не запускались: в среде нет Docker и PostgreSQL. Для повторного запуска использовать команды из `backend/README.md`.
 
@@ -84,3 +84,75 @@ $env:VACATIME_ACCESS_TOKEN = '<access token>'
 | Потеря/недоступность БД | Инструкция `pg_dump`/`pg_restore`, volume и health endpoint | Подготовлено; реальное восстановление ожидает Docker/PostgreSQL. |
 
 Публичный доступ и HTTPS не настраиваются в этом локальном Compose-профиле. Перед размещением за пределами учебной машины нужны TLS на reverse proxy и отдельные production-реквизиты PostgreSQL.
+
+## Практические работы № 10 и 17. Эволюция схемы и качество данных
+
+### Старая и действующая модель
+
+Логическая модель работы № 3 уточнена физической схемой работы № 4 и хранится в PostgreSQL через Liquibase. Основные связи сохранены: users—vacations—vacation_types, заметки с автором, refresh-сессии, аудит и дочерние коллекции тегов/ролей. В физической версии закреплены составные ключи `user_roles(user_id, role)` и `vacation_tags(vacation_id, tag)`, версия отпуска для optimistic locking, флаг архивирования, CHECK/UNIQUE/FK и индексы под список и фильтры.
+
+В текущем changelog две миграции: `001-schema` создаёт таблицы, ограничения и индексы; `002-demo-data` добавляет демонстрационные записи. Ревизия FR не выявила нового backend-требования, которому нужна отдельная сущность или колонка, поэтому миграция `003` в этом цикле не нужна.
+
+### Порядок дальнейшего обновления
+
+Существующую БД вручную не удалять. При появлении FR, требующего новых данных, добавить следующий Liquibase changeset: сначала протестировать его на пустой БД, затем на копии заполненной БД; выполнить проверки числа записей, FK и ограничений; только после успешной проверки применять к учебному окружению. Для отката при несовместимой миграции восстановить проверенную резервную копию, а не удалять и пересоздавать исходную БД.
+
+Автоматический контекстный запуск проверяет Liquibase на H2 в PostgreSQL-режиме; тесты прошли. В этой среде PostgreSQL-копия и preservation-тест не запускались из-за отсутствия Docker/PostgreSQL. Отдельная задача `postgresTest` подготовлена для выполнения этого шага на доступном PostgreSQL-стенде.
+
+## Практические работы № 11 и 19. Контракт backend API
+
+### Описание операций
+
+В OpenAPI опубликованы Swagger UI по `/swagger-ui/index.html` и JSON-схема по `/v3/api-docs`. Чтение доступно авторизованным пользователям; изменение данных обычно доступно EDITOR и ADMIN; администрирование — только ADMIN. В спецификации bearer JWT указан для защищённых операций, а login/refresh оставлены публичными.
+
+| Метод и путь | Назначение | Доступ | Основные ответы |
+|---|---|---|---|
+| `POST /api/auth/login`, `POST /api/auth/refresh` | Вход и обновление пары токенов | Публичный | 200, 400, 401, 423 |
+| `POST /api/auth/logout`, `GET /api/auth/me`, `POST /api/auth/change-password` | Завершить сессию, профиль, смена пароля | Bearer | 200, 400, 401, 403 |
+| `GET /api/vacations`, `GET /api/vacations/{id}` | Поиск/страница и карточка отпуска | Bearer | 200, 401, 404 |
+| `POST /api/vacations`, `PUT /api/vacations/{id}` | Создать/изменить отпуск | EDITOR, ADMIN | 200, 400, 401, 403, 404, 409 |
+| `DELETE /api/vacations/{id}`, `POST /api/vacations/{id}/restore` | Архивировать/восстановить отпуск | EDITOR, ADMIN | 200, 401, 403, 404, 409 |
+| `DELETE /api/vacations/{id}/permanent`, `POST /api/vacations/bulk` | Удалить навсегда/массовая обработка | ADMIN для удаления; EDITOR/ADMIN для bulk | 200, 400, 401, 403, 404, 409 |
+| `GET/POST /api/vacations/{id}/notes`, `PUT/DELETE /api/vacations/{id}/notes/{noteId}` | Заметки к отпуску | GET: Bearer; изменения: EDITOR, ADMIN | 200, 400, 401, 403, 404 |
+| `GET /api/vacations/export`, `POST /api/vacations/import/preview`, `POST /api/vacations/import/apply` | CSV экспорт и импорт | GET: Bearer; импорт: EDITOR, ADMIN | 200, 400, 401, 403 |
+| `GET /api/vacation-types`, `POST /api/vacation-types`, `PUT /api/vacation-types/{id}` | Типы отпусков | GET: Bearer; изменения: ADMIN | 200, 400, 401, 403, 404, 409 |
+| `GET /api/analytics/summary` | Сводная аналитика | Bearer | 200, 401 |
+| `GET/POST /api/admin/users`, `PUT /api/admin/users/{id}`, `POST /api/admin/users/{id}/reset-password` | Управление пользователями | ADMIN | 200, 400, 401, 403, 404, 409 |
+| `GET /api/admin/audit` | Поиск журнала аудита | ADMIN | 200, 400, 401, 403 |
+
+Список отпусков принимает фильтры `search`, `employeeId`, `vacationTypeId`, `status`, `urgent`, `priority`, `tag`, `archived`, `startDateFrom`, `startDateTo`, `daysCount`, `daysCountOperator`; параметры страницы — `page`, `size`, `sort`, `direction`. При ошибке API возвращает `timestamp`, `status`, `error`, `message`, `path`, `correlationId` и, для ошибок валидации, `fieldErrors`.
+
+### Примеры запросов и ответов
+
+Вход:
+
+```http
+POST /api/auth/login
+Content-Type: application/json
+
+{"login":"<login>","password":"<password>"}
+```
+
+```json
+{"accessToken":"<jwt>","refreshToken":"<refresh-token>","mustChangePassword":false}
+```
+
+Создание отпуска:
+
+```http
+POST /api/vacations
+Authorization: Bearer <jwt>
+Content-Type: application/json
+
+{"employeeId":"<uuid>","vacationTypeId":"<uuid>","title":"Летний отпуск","startDate":"2030-07-01","endDate":"2030-07-14","urgent":false,"tags":["лето"],"status":"PENDING"}
+```
+
+Успешный ответ содержит `id`, `vacationNumber`, сотрудника и тип отпуска, введённые поля, `daysCount`, `priority`, `version` и признак `archived`.
+
+Пример конфликта версии (409):
+
+```json
+{"timestamp":"2030-06-01T10:15:30Z","status":409,"error":"Conflict","message":"Vacation was modified by another user","path":"/api/vacations/<uuid>","correlationId":"<correlation-id>","fieldErrors":[]}
+```
+
+Проверку контракта выполняет `OpenApiIntegrationTest`: тест подтверждает наличие ключевых маршрутов, bearer-схемы и то, что login не помечен защищённым. Фактический JSON `/v3/api-docs` не снимался с запущенного приложения в этой среде; интеграционный тест проходит внутри Spring-контекста. Новых маршрутов для документации не добавляли.

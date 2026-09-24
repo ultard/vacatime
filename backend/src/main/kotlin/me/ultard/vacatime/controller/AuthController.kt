@@ -1,5 +1,6 @@
 package me.ultard.vacatime.controller
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import jakarta.validation.Valid
 import me.ultard.vacatime.domain.User
 import me.ultard.vacatime.dto.LoginRequest
@@ -32,17 +33,20 @@ class AuthController(
     ): TokenResponse = authService.refresh(request)
 
     @PostMapping("/logout")
+    @SecurityRequirement(name = "bearerAuth")
     fun logout(
         @AuthenticationPrincipal user: User,
         @Valid @RequestBody request: RefreshRequest,
     ) = authService.logout(user, request)
 
     @GetMapping("/me")
+    @SecurityRequirement(name = "bearerAuth")
     fun me(
         @AuthenticationPrincipal user: User,
     ): UserDto = user.toDto()
 
     @PostMapping("/change-password")
+    @SecurityRequirement(name = "bearerAuth")
     fun changePassword(
         @AuthenticationPrincipal user: User,
         @Valid @RequestBody request: PasswordRequest,

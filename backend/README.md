@@ -32,6 +32,11 @@ docker compose ps
 Swagger: http://localhost:8080/swagger-ui/index.html. Получите access token через
 `POST /api/auth/login` и вставьте его в Swagger Authorize.
 
+Состояние приложения доступно по `GET /actuator/health`. Подробности состояния,
+`/actuator/info` и `/actuator/metrics` доступны только ADMIN. В логах запросы
+связываются по `X-Correlation-ID`; успешные административные операции доступны
+в `/api/admin/audit`.
+
 Liquibase создаёт схему и демоданные: 5 пользователей, 3 типа отпуска и 10 отпусков.
 Логины: `admin`, `editor`, `viewer`, `elena`, `inactive`. Временный пароль:
 `ChangeMe123!`. При первом входе обязателен `POST /api/auth/change-password`.
@@ -63,3 +68,19 @@ $env:TEST_DB_URL = 'jdbc:postgresql://localhost:5432/vacatime_test'
 Тесты покрывают JWT, refresh/logout, блокировку входа, временные пароли,
 права доступа, CRUD, бизнес-правила, фильтры, optimistic locking, заметки,
 массовые операции, CSV и аудит.
+
+### Резервная копия и восстановление локальной БД
+
+Команды выполняются из `backend/`. Архив сохраняется в папке `backups/`,
+исключённой из Git:
+
+```powershell
+New-Item -ItemType Directory -Force .\backups | Out-Null
+docker compose exec -T postgres pg_dump -U vacatime -d vacatime -Fc -f /backups/vacatime.dump
+docker compose exec -T postgres createdb -U vacatime vacatime_restore
+docker compose exec -T postgres pg_restore -U vacatime -d vacatime_restore /backups/vacatime.dump
+docker compose exec -T postgres psql -U vacatime -d vacatime_restore -c "SELECT count(*) FROM vacations"
+```
+
+Пример восстанавливает копию в отдельную локальную БД. В рабочей среде сначала
+выберите целевую БД и проверьте архив; не восстанавливайте поверх исходной базы.

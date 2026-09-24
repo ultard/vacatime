@@ -53,6 +53,8 @@ class SecurityConfig(
                         "/api/auth/change-password",
                         "/api/auth/logout",
                     ).authenticated()
+                it.requestMatchers("/actuator/health").permitAll()
+                it.requestMatchers("/actuator/**").hasRole("ADMIN")
                 it.anyRequest().access { authentication, _ ->
                     val user = authentication.get().principal as? User
                     AuthorizationDecision(user?.active == true && !user.mustChangePassword)

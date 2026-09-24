@@ -31,4 +31,21 @@ interface VacationRepository :
         startDate: LocalDate,
         endDate: LocalDate,
     ): Boolean
+
+    @Query(
+        """
+        select vacation from Vacation vacation
+        where vacation.employee.id in :employeeIds
+          and vacation.archived = false
+          and vacation.status in :statuses
+          and vacation.startDate <= :endDate
+          and vacation.endDate >= :startDate
+        """,
+    )
+    fun findAvailabilityVacations(
+        employeeIds: Set<UUID>,
+        statuses: Set<VacationStatus>,
+        startDate: LocalDate,
+        endDate: LocalDate,
+    ): List<Vacation>
 }

@@ -1,7 +1,7 @@
 package me.ultard.vacatime.domain
 
-import jakarta.persistence.Column
 import jakarta.persistence.CascadeType
+import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.FetchType
 import jakarta.persistence.Id
@@ -28,6 +28,11 @@ class ShiftPlan(
     var workDate: LocalDate = LocalDate.now(),
     @Column(name = "minimum_staff", nullable = false)
     var minimumStaff: Int = 0,
-    @OneToMany(mappedBy = "plan", cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(
+        mappedBy = "plan",
+        cascade = [CascadeType.ALL],
+        orphanRemoval = true,
+        fetch = FetchType.LAZY,
+    )
     var assignments: MutableList<ShiftPlanAssignment> = mutableListOf(),
 )

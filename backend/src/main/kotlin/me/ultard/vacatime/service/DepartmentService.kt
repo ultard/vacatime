@@ -32,7 +32,8 @@ class DepartmentService(
             if (includeInactive) {
                 shiftRepository.findAllByOrderByDepartmentNameAscNameAsc()
             } else {
-                shiftRepository.findAllByActiveTrueAndDepartmentActiveTrueOrderByDepartmentNameAscNameAsc()
+                shiftRepository
+                    .findActiveForAvailability()
             }
         val shiftsByDepartment = shifts.groupBy { requireNotNull(it.department).id }
         return departments.map { department ->
@@ -42,7 +43,10 @@ class DepartmentService(
 
     @Transactional
     fun create(request: DepartmentRequest): DepartmentDto {
-        val department = departmentRepository.save(Department(name = request.name, active = request.active))
+        val department =
+            departmentRepository.save(
+                Department(name = request.name, active = request.active),
+            )
         auditService.log("CREATE", "DEPARTMENT", department.id)
         return department.toDto(emptyList())
     }
@@ -57,7 +61,7 @@ class DepartmentService(
         department.active = request.active
         department.updatedAt = Instant.now()
         auditService.log("UPDATE", "DEPARTMENT", id)
-        return department.toDto(shiftRepository.findAllByDepartmentIdOrderByName(id))
+        return department.toDto(shiftRepository.findAllForDepartment(id))
     }
 
     @Transactional
@@ -66,7 +70,10 @@ class DepartmentService(
         request: ShiftRequest,
     ): ShiftDto {
         val department = findDepartment(departmentId)
-        val shift = shiftRepository.save(Shift(department = department, name = request.name, active = request.active))
+        val shift =
+            shiftRepository.save(
+                Shift(department = department, name = request.name, active = request.active),
+            )
         auditService.log("CREATE", "SHIFT", shift.id)
         return shift.toDto()
     }
@@ -78,7 +85,7 @@ class DepartmentService(
         request: ShiftRequest,
     ): ShiftDto {
         val shift =
-            shiftRepository.findByIdAndDepartmentId(id, departmentId)
+            shiftRepository.findByIdAndDepartment(id, departmentId)
                 ?: throw NotFoundException("Shift not found")
         shift.name = request.name
         shift.active = request.active

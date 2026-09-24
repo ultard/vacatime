@@ -29,11 +29,25 @@ class ShiftPlanService(
         if (days.any { it.date.isBefore(LocalDate.now()) }) {
             throw ValidationException("Shift plans can only be set for today or a future date")
         }
-        if (days.any { day -> day.shifts.map { it.shiftId }.toSet().size != day.shifts.size }) {
+        if (days.any { day ->
+                day.shifts
+                    .map { it.shiftId }
+                    .toSet()
+                    .size != day.shifts.size
+            }
+        ) {
             throw ValidationException("Each shift can appear only once per date")
         }
 
-        val assignmentKeys = days.flatMap { day -> day.shifts.flatMap { shift -> shift.employeeIds.map { day.date to it } } }
+        val assignmentKeys =
+            days.flatMap { day ->
+                day.shifts.flatMap { shift ->
+                    shift.employeeIds.map {
+                        day.date to
+                            it
+                    }
+                }
+            }
         if (assignmentKeys.toSet().size != assignmentKeys.size) {
             throw ValidationException("An employee can be assigned to only one shift per date")
         }
@@ -62,13 +76,14 @@ class ShiftPlanService(
                             minimumStaff = input.minimumStaff,
                         )
                     plan.assignments =
-                        input.employeeIds.map { employeeId ->
-                            ShiftPlanAssignment(
-                                plan = plan,
-                                employee = employees.getValue(employeeId),
-                                workDate = day.date,
-                            )
-                        }.toMutableList()
+                        input.employeeIds
+                            .map { employeeId ->
+                                ShiftPlanAssignment(
+                                    plan = plan,
+                                    employee = employees.getValue(employeeId),
+                                    workDate = day.date,
+                                )
+                            }.toMutableList()
                     plan
                 }
             }
@@ -76,6 +91,11 @@ class ShiftPlanService(
         val dates = days.map { it.date }.toSet()
         shiftPlanRepository.deleteAllByWorkDateIn(dates)
         shiftPlanRepository.saveAll(plans)
-        auditService.log("REPLACE", "SHIFT_PLAN", null, "Replaced shift plans for ${dates.size} date(s)")
+        auditService.log(
+            "REPLACE",
+            "SHIFT_PLAN",
+            null,
+            "Replaced shift plans for ${dates.size} date(s)",
+        )
     }
 }

@@ -27,7 +27,7 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:-vacatime}
       JWT_SECRET: "${JWT_SECRET:?Set JWT_SECRET in backend/.env}"
     ports:
-      - '8080:8080'
+      - '127.0.0.1:8080:8080'
 
 volumes:
   postgres-data:

@@ -89,10 +89,6 @@ CREATE TABLE audit_log
     created_at     TIMESTAMP WITH TIME ZONE NOT NULL
 );
 
-CREATE INDEX ix_vacations_employee_dates ON vacations (employee_id, start_date, end_date);
-CREATE INDEX ix_vacations_filters ON vacations (status, archived, start_date);
-CREATE INDEX ix_audit_created ON audit_log (created_at);
-
 CREATE TABLE departments
 (
     id         UUID PRIMARY KEY,
@@ -132,27 +128,20 @@ CREATE TABLE shift_plan_assignments
     UNIQUE (work_date, employee_id)
 );
 
+CREATE INDEX ix_refresh_sessions_user ON refresh_sessions(user_id);
+CREATE INDEX ix_users_full_name ON users(full_name);
+CREATE INDEX ix_audit_created ON audit_log (created_at);
+
+CREATE INDEX ix_vacations_title ON vacations(title);
+CREATE INDEX ix_vacations_type ON vacations(vacation_type_id);
+CREATE INDEX ix_vacations_priority ON vacations(priority);
+CREATE INDEX ix_vacations_urgent ON vacations(urgent);
+CREATE INDEX ix_vacations_days_count ON vacations(days_count);
+CREATE INDEX ix_vacations_employee_dates ON vacations (employee_id, start_date, end_date);
+
+CREATE INDEX ix_vacation_tags_tag ON vacation_tags(tag);
+CREATE INDEX ix_vacations_filters ON vacations (status, archived, start_date);
+CREATE INDEX ix_vacation_notes_vacation ON vacation_notes(vacation_id);
+
 CREATE INDEX ix_shift_plans_date ON shift_plans (work_date);
 CREATE INDEX ix_shift_assignments_date_employee ON shift_plan_assignments (work_date, employee_id);
-INSERT INTO vacation_types(id, code, name, description, active)
-
-VALUES ('00000000-0000-0000-0000-000000000001', 'ANNUAL', 'Annual leave', 'Paid annual leave', true),
-       ('00000000-0000-0000-0000-000000000002', 'SICK', 'Sick leave', 'Medical leave', true),
-       ('00000000-0000-0000-0000-000000000003', 'UNPAID', 'Unpaid leave', 'Unpaid leave', true);
-
-INSERT INTO users(
-    id, login, password_hash,
-    full_name, active, must_change_password, failed_login_attempts, created_at,
-                  updated_at)
-VALUES ('10000000-0000-0000-0000-000000000001', 'admin', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'System Administrator', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       ('10000000-0000-0000-0000-000000000002', 'editor', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Vacation Editor', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       ('10000000-0000-0000-0000-000000000003', 'viewer', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Vacation Viewer', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       ('10000000-0000-0000-0000-000000000004', 'elena', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Elena Petrova', true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       ('10000000-0000-0000-0000-000000000005', 'inactive', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Inactive User', false, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
-
-INSERT INTO user_roles
-VALUES ('10000000-0000-0000-0000-000000000001', 'ADMIN'),
-       ('10000000-0000-0000-0000-000000000002', 'EDITOR'),
-       ('10000000-0000-0000-0000-000000000003', 'VIEWER'),
-       ('10000000-0000-0000-0000-000000000004', 'VIEWER'),
-       ('10000000-0000-0000-0000-000000000005', 'VIEWER');

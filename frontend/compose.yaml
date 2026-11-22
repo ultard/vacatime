@@ -1,0 +1,19 @@
+# Frontend (SvelteKit BFF). The backend runs from ../backend/compose.yaml.
+#
+#   docker compose up --build -d
+#
+# By default the container reaches the backend published on the host (port 8080) through
+# host.docker.internal. To join the backend's compose network instead, see README.
+services:
+  frontend:
+    build:
+      context: .
+      args:
+        ORIGIN: ${ORIGIN:-http://localhost:3000}
+    environment:
+      API_URL: ${API_URL:-http://host.docker.internal:8080}
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+    ports:
+      - '127.0.0.1:3000:3000'
+    restart: unless-stopped

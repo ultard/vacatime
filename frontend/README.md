@@ -1,42 +1,36 @@
-# sv
+# Vacatime frontend
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
-
-## Creating a project
-
-If you're seeing this, you've probably already done this step. Congrats!
+## Запуск
 
 ```sh
-# create a new project
-npx sv create my-app
+cp .env.example .env
+bun install
+bun run dev
 ```
 
-To recreate this project with the same configuration:
+Демо-логины: `admin`, `editor`, `viewer`, `elena`. Временный пароль `ChangeMe123!`.
+
+### Демо-данные
 
 ```sh
-# recreate this project
-bun x sv@0.17.0 create --template minimal --types ts --add vitest="usages:unit,component" playwright tailwindcss="plugins:none" ai-tools="ide:claude-code,other+delivery:plugin" --install bun vacatime
+API_URL=http://localhost:8080 SEED_LOGIN=admin SEED_PASSWORD='<пароль admin>' bun scripts/seed.ts
 ```
 
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+### Сборка
 
 ```sh
-npm run dev
+ORIGIN=http://localhost:3000 bun run build
+API_URL=http://localhost:8080 PORT=3000 node build
 
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
+docker compose up --build -d
+# или в сети compose бэкенда:
+docker compose -f compose.yaml -f compose.backend-network.yaml up --build -d
 ```
 
-## Building
-
-To create a production version of your app:
+## Проверки
 
 ```sh
-npm run build
+bun run check
+bun run test:unit --run
+bun run test:e2e
 ```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.

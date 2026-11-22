@@ -1,0 +1,13 @@
+# Optional override: put the frontend on the backend compose network and call it by service name.
+#   docker compose -f compose.yaml -f compose.backend-network.yaml up --build -d
+services:
+  frontend:
+    environment:
+      API_URL: http://backend:8080
+    networks:
+      - backend
+
+networks:
+  backend:
+    name: backend_default
+    external: true

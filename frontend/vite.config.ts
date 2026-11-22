@@ -1,21 +1,29 @@
 import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'vitest/config';
 import { playwright } from '@vitest/browser-playwright';
-import adapter from '@sveltejs/adapter-auto';
+import adapter from '@sveltejs/adapter-node';
 import { sveltekit } from '@sveltejs/kit/vite';
+import { paraglideVitePlugin } from '@inlang/paraglide-js';
 
 export default defineConfig({
 	plugins: [
+		paraglideVitePlugin({
+			project: './project.inlang',
+			outdir: './src/lib/paraglide',
+			strategy: ['cookie', 'preferredLanguage', 'baseLocale']
+		}),
 		tailwindcss(),
 		sveltekit({
 			compilerOptions: {
 				// Force runes mode for the project, except for libraries. Can be removed in svelte 6.
-				runes: ({ filename }) => filename.split(/[/\\]/).includes('node_modules') ? undefined : true
+				runes: ({ filename }) => (filename.split(/[/\\]/).includes('node_modules') ? undefined : true),
+				experimental: { async: true }
 			},
-
-			// adapter-auto only supports some environments, see https://svelte.dev/docs/kit/adapter-auto for a list.
-			// If your environment is not supported, or you settled on a specific environment, switch out the adapter.
-			// See https://svelte.dev/docs/kit/adapters for more information about adapters.
+			experimental: { remoteFunctions: true },
+			// Canonical public origin (CSRF checks for forms/remote functions, cookie `secure` flag).
+			// adapter-node 6 no longer reads ORIGIN at runtime; without it the origin is derived from
+			// the Host header and PROTOCOL_HEADER (default https), so set it at build time when known.
+			paths: { origin: process.env.ORIGIN || undefined },
 			adapter: adapter()
 		})
 	],
@@ -32,6 +40,7 @@ export default defineConfig({
 						instances: [{ browser: 'chromium', headless: true }]
 					},
 					include: ['src/**/*.svelte.{test,spec}.{js,ts}'],
+					setupFiles: ['src/test-setup.client.ts'],
 					exclude: ['src/lib/server/**']
 				}
 			},
